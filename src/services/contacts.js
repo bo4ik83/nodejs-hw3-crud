@@ -9,7 +9,8 @@ export const getContactById = async (contactId) => {
 };
 
 export const createContact = async (contactData) => {
-  return await Contact.create(contactData);
+  const newContact = new Contact(contactData);
+  return await newContact.save();
 };
 
 export const updateContact = async (contactId, contactData) => {

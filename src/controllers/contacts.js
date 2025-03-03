@@ -29,13 +29,32 @@ export const getContactByIdController = async (req, res) => {
   });
 };
 
-export const createContactController = async (req, res) => {
-  const contact = await createContact(req.body);
-  res.status(201).json({
-    status: 201,
-    message: 'Successfully created a contact!',
-    data: contact,
-  });
+export const createContactController = async (req, res, next) => {
+  try {
+    const { name, phoneNumber, email, isFavorite, contactType } = req.body;
+    if (!name || !phoneNumber || !contactType) {
+      throw createHttpError(
+        400,
+        'Missing required fields: name, phoneNumber, or contactType',
+      );
+    }
+
+    const newContact = await createContact({
+      name,
+      phoneNumber,
+      email,
+      isFavorite,
+      contactType,
+    });
+
+    res.status(201).json({
+      status: 201,
+      message: 'Successfully created a contact!',
+      data: newContact,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const updateContactController = async (req, res) => {
