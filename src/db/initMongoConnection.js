@@ -4,7 +4,6 @@ export const initMongoConnection = async () => {
   try {
     const { MONGODB_USER, MONGODB_PASSWORD, MONGODB_URL, MONGODB_DB } =
       process.env;
-    console.log({ MONGODB_USER, MONGODB_PASSWORD, MONGODB_URL, MONGODB_DB });
 
     if (!MONGODB_USER || !MONGODB_PASSWORD || !MONGODB_URL || !MONGODB_DB) {
       throw new Error(
@@ -12,12 +11,28 @@ export const initMongoConnection = async () => {
       );
     }
 
-    const connectionString = `mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_URL}/${MONGODB_DB}?retryWrites=true&w=majority`;
+    const connectionString = `mongodb+srv://${encodeURIComponent(
+      MONGODB_USER,
+    )}:${encodeURIComponent(
+      MONGODB_PASSWORD,
+    )}@${MONGODB_URL}/${MONGODB_DB}?retryWrites=true&w=majority`;
+
+    mongoose.set('strictQuery', true); // Включає сувору перевірку запитів
+    mongoose.set('bufferCommands', false); // Вимикає буферизацію команд
 
     await mongoose.connect(connectionString);
-    console.log('Mongo connection successfully established!');
+
+    console.log('✅ Mongo connection successfully established!');
+
+    mongoose.connection.on('disconnected', () => {
+      console.warn('⚠️ MongoDB disconnected!');
+    });
+
+    mongoose.connection.on('error', (err) => {
+      console.error('❌ MongoDB connection error:', err.message);
+    });
   } catch (error) {
-    console.error('Error connecting to MongoDB:', error.message);
+    console.error('❌ Error connecting to MongoDB:', error.message);
     process.exit(1);
   }
 };
