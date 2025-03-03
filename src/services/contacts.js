@@ -17,6 +17,13 @@ export const updateContact = async (contactId, contactData) => {
   return await Contact.findByIdAndUpdate(contactId, contactData, { new: true });
 };
 
+export const patchContact = async (contactId, updateData) => {
+  return await Contact.findByIdAndUpdate(contactId, updateData, {
+    new: true,
+    runValidators: true,
+  });
+};
+
 export const deleteContact = async (contactId) => {
   return await Contact.findByIdAndDelete(contactId);
 };
