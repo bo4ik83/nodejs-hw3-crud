@@ -2,20 +2,14 @@ import mongoose from 'mongoose';
 
 const contactSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true },
+    name: { type: String, required: true },
     phoneNumber: {
       type: String,
       required: true,
-      unique: true,
-      trim: true,
-      match: [/^\+?\d{7,15}$/, 'Please enter a valid phone number'],
     },
     email: {
       type: String,
       required: false,
-      trim: true,
-      lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address'],
     },
     isFavorite: { type: Boolean, default: false },
     contactType: {
