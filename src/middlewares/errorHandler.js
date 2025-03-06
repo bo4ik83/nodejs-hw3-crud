@@ -1,5 +1,5 @@
-const errorHandler = (err, req, res) => {
-  console.error(err);
+const errorHandler = (err, req, res, next) => {
+  console.error('Error:', err);
 
   res.status(err.status || 500).json({
     status: err.status || 500,

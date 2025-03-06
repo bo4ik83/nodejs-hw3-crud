@@ -26,7 +26,7 @@ export const getContactByIdController = async (req, res, next) => {
     const { contactId } = req.params;
     const contact = await getContactById(contactId);
     if (!contact) {
-      return next(createHttpError(404, 'Contact not found'));
+      return next(createHttpError(404, { message: 'Contact not found' }));
     }
     res.status(200).json({
       status: 200,
@@ -43,10 +43,9 @@ export const createContactController = async (req, res, next) => {
     const { name, phoneNumber, email, isFavorite, contactType } = req.body;
     if (!name || !phoneNumber || !contactType) {
       return next(
-        createHttpError(
-          400,
-          'Missing required fields: name, phoneNumber, or contactType',
-        ),
+        createHttpError(400, {
+          message: 'Missing required fields: name, phoneNumber, or contactType',
+        }),
       );
     }
 
@@ -73,7 +72,7 @@ export const updateContactController = async (req, res, next) => {
     const { contactId } = req.params;
     const updatedContact = await updateContact(contactId, req.body);
     if (!updatedContact) {
-      return next(createHttpError(404, 'Contact not found'));
+      return next(createHttpError(404, { message: 'Contact not found' }));
     }
     res.json({
       status: 200,
@@ -90,7 +89,7 @@ export const patchContactController = async (req, res, next) => {
     const { contactId } = req.params;
     const updatedContact = await patchContact(contactId, req.body);
     if (!updatedContact) {
-      return next(createHttpError(404, 'Contact not found'));
+      return next(createHttpError(404, { message: 'Contact not found' }));
     }
 
     res.json({
@@ -108,7 +107,7 @@ export const deleteContactController = async (req, res, next) => {
     const { contactId } = req.params;
     const removedContact = await deleteContact(contactId);
     if (!removedContact) {
-      return next(createHttpError(404, 'Contact not found'));
+      return next(createHttpError(404, { message: 'Contact not found' }));
     }
     res.status(204).send();
   } catch (err) {
