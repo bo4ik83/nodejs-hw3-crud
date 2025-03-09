@@ -1,23 +1,17 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose from 'mongoose';
 
-const contactSchema = new Schema(
+const contactSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
-      trim: true,
     },
     phoneNumber: {
       type: String,
       required: true,
-      unique: true,
-      match: ['Invalid phone number format'],
     },
     email: {
       type: String,
-      required: false,
-      lowercase: true,
-      match: ['Invalid email format'],
     },
     isFavourite: {
       type: Boolean,
@@ -25,8 +19,8 @@ const contactSchema = new Schema(
     },
     contactType: {
       type: String,
-      required: true,
       enum: ['work', 'home', 'personal'],
+      required: true,
       default: 'personal',
     },
   },
