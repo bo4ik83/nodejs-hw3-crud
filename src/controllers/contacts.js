@@ -1,5 +1,4 @@
 import createHttpError from 'http-errors';
-import Contact from '../db/models/contact.js'; // Добавляем импорт модели
 import {
   getAllContacts,
   getContactById,
@@ -7,127 +6,112 @@ import {
   updateContact,
   patchContact,
   deleteContact,
+  getContactByPhoneNumber,
 } from '../services/contacts.js';
+import ctrlWrapper from '../utils/ctrlWrapper.js';
 
-export const getContactsController = async (req, res, next) => {
-  try {
-    const contacts = await getAllContacts();
-    res.status(200).json({
-      status: 200,
-      message: 'Successfully found contacts!',
-      data: contacts,
-    });
-  } catch (err) {
-    next(err);
+export const getContactsController = ctrlWrapper(async (req, res) => {
+  const contacts = await getAllContacts();
+  res.status(200).json({
+    status: 200,
+    message: 'Successfully found contacts!',
+    data: contacts,
+  });
+});
+
+export const getContactByIdController = ctrlWrapper(async (req, res) => {
+  const { contactId } = req.params;
+  const contact = await getContactById(contactId);
+
+  if (!contact) {
+    throw createHttpError(404, 'Contact not found');
   }
-};
 
-export const getContactByIdController = async (req, res, next) => {
-  try {
-    const { contactId } = req.params;
-    const contact = await getContactById(contactId);
+  res.status(200).json({
+    status: 200,
+    message: `Successfully found contact with id ${contactId}!`,
+    data: contact,
+  });
+});
 
-    if (!contact) {
-      throw createHttpError(404, 'Contact not found');
-    }
+export const createContactController = ctrlWrapper(async (req, res) => {
+  const { name, phoneNumber, email, isFavorite, contactType } = req.body;
 
-    res.status(200).json({
-      status: 200,
-      message: `Successfully found contact with id ${contactId}!`,
-      data: contact,
-    });
-  } catch (err) {
-    next(err);
+  if (!name || !phoneNumber || !contactType) {
+    throw createHttpError(
+      400,
+      'Missing required fields: name, phoneNumber, or contactType',
+    );
   }
-};
 
-export const createContactController = async (req, res, next) => {
-  try {
-    const { name, phoneNumber, email, isFavorite, contactType } = req.body;
+  const existingContact = await getContactByPhoneNumber(phoneNumber);
 
-    if (!name || !phoneNumber || !contactType) {
-      throw createHttpError(
-        400,
-        'Missing required fields: name, phoneNumber, or contactType',
-      );
-    }
-
-    const existingContact = await Contact.findOne({ phoneNumber });
-
-    if (existingContact) {
-      return res.status(409).json({
-        status: 409,
-        message: 'Contact with this phone number already exists.',
-      });
-    }
-
-    const newContact = await createContact({
-      name,
-      phoneNumber,
-      email,
-      isFavorite,
-      contactType,
-    });
-
-    res.status(201).json({
+  if (existingContact) {
+    return res.status(201).json({
       status: 201,
-      message: 'Successfully created a contact!',
-      data: newContact,
+      message: 'Contact with this phone number already exists.',
+      data: existingContact,
     });
-  } catch (err) {
-    next(err);
   }
-};
 
-export const updateContactController = async (req, res, next) => {
-  try {
-    const { contactId } = req.params;
-    const updatedContact = await updateContact(contactId, req.body);
+  const newContact = await createContact({
+    name,
+    phoneNumber,
+    email,
+    isFavorite,
+    contactType,
+  });
 
-    if (!updatedContact) {
-      throw createHttpError(404, 'Contact not found');
-    }
+  res.status(201).json({
+    status: 201,
+    message: 'Successfully created a contact!',
+    data: newContact,
+  });
+});
 
-    res.status(200).json({
-      status: 200,
-      message: 'Successfully updated a contact!',
-      data: updatedContact,
-    });
-  } catch (err) {
-    next(err);
+export const updateContactController = ctrlWrapper(async (req, res) => {
+  const { contactId } = req.params;
+  const updateData = req.body;
+
+  if (!Object.keys(updateData).lenght) {
+    throw createHttpError(400, 'Missing fields for update');
   }
-};
 
-export const patchContactController = async (req, res, next) => {
-  try {
-    const { contactId } = req.params;
-    const updatedContact = await patchContact(contactId, req.body);
+  const updatedContact = await updateContact(contactId, updateData);
 
-    if (!updatedContact) {
-      throw createHttpError(404, 'Contact not found');
-    }
-
-    res.status(200).json({
-      status: 200,
-      message: 'Successfully patched a contact!',
-      data: updatedContact,
-    });
-  } catch (err) {
-    next(err);
+  if (!updateContact) {
+    throw createHttpError(404, 'Contact not found');
   }
-};
 
-export const deleteContactController = async (req, res, next) => {
-  try {
-    const { contactId } = req.params;
-    const deletedContact = await deleteContact(contactId);
+  res.status(200).json({
+    status: 200,
+    message: 'Successfully updated a contact!',
+    data: updatedContact,
+  });
+});
 
-    if (!deletedContact) {
-      throw createHttpError(404, 'Contact not found');
-    }
+export const patchContactController = ctrlWrapper(async (req, res) => {
+  const { contactId } = req.params;
+  const updatedContact = await patchContact(contactId, req.body);
 
-    res.status(204).send();
-  } catch (err) {
-    next(err);
+  if (!updatedContact) {
+    throw createHttpError(404, 'Contact not found');
   }
-};
+
+  res.status(200).json({
+    status: 200,
+    message: 'Successfully patched a contact!',
+    data: updatedContact,
+  });
+});
+
+export const deleteContactController = ctrlWrapper(async (req, res) => {
+  const { contactId } = req.params;
+  const deletedContact = await deleteContact(contactId);
+
+  if (!deletedContact) {
+    throw createHttpError(404, 'Contact not found');
+  }
+
+  res.status(204).send();
+});
